@@ -1,8 +1,11 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+
 
 const AdminDashboard = () => {
-  return (
-    <div>AdminDashboard</div>
+ return (
+    <div>
+      <p>Admin</p>
+    </div>      
   )
 }
 

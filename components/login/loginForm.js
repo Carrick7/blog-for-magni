@@ -1,81 +1,68 @@
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-const { validateUserName, validateEmail, validatePassword } = require('../../utils/regex');
+import { useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { getError } from '../../utils/error';
+import { useRouter } from 'next/router';
+import { useFormik } from 'formik';
+import login_validate from '../../utils/loginValidation';
 
 const LoginForm = () => {
+  const router = useRouter();
 
-  const {
-    handleSubmit,
-    register,
-    formState: { errors },
-  } = useForm();
-  const submitHandler = ({ email, userName, password }) => {
-    console.log(email, userName, password);
-  };
+  const formik = useFormik({
+    initialValues: {
+      email:'',
+      password:''
+    },
+    validate : login_validate,
+    onSubmit
+  })
 
+   async function onSubmit(values){
+    const status = await signIn('credentials',
+    {
+      redirect:false,
+      email:values.email,
+      password:values.password,
+      callbackUrl: "/admin/adminDashboard"
+    })
+    console.log(status)
+    if(status.ok)router.push(status.url)
+    if(status.error){
+      alert(error)
+    }
+  }
+  
   return (
     <div>
-      <form onSubmit={handleSubmit(submitHandler)}>
-        {/* Email */}
-        <label htmlFor="email"> Email </label>
+      <form onSubmit={formik.handleSubmit}>
+        <label> Email </label>
         <input
-         type="email"
-         {...register('email', {
-           required: 'Please enter email',
-           pattern: {
-             value: validateEmail,
-             message: 'Please enter valid email',
-           },
-         })}
-         id='email'
-         autoFocus>     
+          type='email'
+          name='email'
+          placeholder='Enter Email'
+          {...formik.getFieldProps('email')}
+        >
         </input>
-        {errors.email && (
-            <div>{errors.email.message}</div>
-          )
-        }
-        <br />
+        <br/>
+        {formik.errors.email && formik.touched.email? <span>{formik.errors.email}</span>:<></>}
+        <br/>
 
-         {/* userName */}
-        <label htmlFor="userName"> Username </label>
+        <label> Password </label>
         <input
-         {...register('userName', {
-           required: 'Please enter username',
-           pattern: {
-             value: validateUserName,
-             message: 'Please enter a valid username',
-           },
-         })}
-         id='userName'
-         autoFocus>     
+          type='password'
+          name='password'
+          placeholder='Enter Password'
+          {...formik.getFieldProps('password')}
+        >
         </input>
-        {errors.userName && (
-            <div>{errors.userName.message}</div>
-          )
-        }
-        <br />
+        <br/>
+        {formik.errors.password && formik.touched.password? <span>{formik.errors.password}</span>:<></>}
+        <br/>
 
-        {/* Password */}
-        <label htmlFor="password"> Password </label>
-        <input
-         type="password"
-         {...register('password', {
-           required: 'Please enter password',
-           pattern: {
-             value: validatePassword,
-             message: 'Please enter a valid password',
-           },
-         })}
-         id='password'
-         autoFocus>
-        </input>
-        {errors.password && (
-            <div>{errors.password.message}</div>
-          )
-        }
-        <br />
+        <button type='submit'>
+          Login
+        </button>
 
-        <button> Login </button>
       </form>
     </div>
   )
